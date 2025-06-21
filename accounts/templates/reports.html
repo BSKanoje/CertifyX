@@ -1,0 +1,150 @@
+<!-- templates/reports.html -->
+{% extends 'base.html' %}
+{% block title %}Reports | CertifyX{% endblock %}
+
+{% block extra_head %}
+<style>
+    .card { border-radius: 12px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <!-- Add this line -->
+{% endblock %}
+
+{% block content %}
+<h2 class="text-center mb-4">Company Dashboard - Reports</h2>
+
+<a href="{% url 'export-certificates-csv' %}" class="btn btn-outline-success mb-4">Download CSV</a>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card text-white bg-success mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Total Certificates</h5>
+                <p class="card-text display-4">{{ total_certificates }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-info mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Certificates Used</h5>
+                <p class="card-text display-4">{{ certificates_used }} / {{ certificate_limit }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-white bg-warning mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Subscription Status</h5>
+                <p class="card-text">
+                    {% if subscription.is_subscription_active %}Active ({{ days_left }} days left){% else %}Expired{% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="GET" class="form-inline mb-3">
+    <label class="mr-2">From:</label>
+    <input type="date" name="start_date" class="form-control mr-2" value="{{ request.GET.start_date }}">
+    <label class="mr-2">To:</label>
+    <input type="date" name="end_date" class="form-control mr-2" value="{{ request.GET.end_date }}">
+    <label class="mr-2">Template:</label>
+    <select name="template" class="form-control mr-2">
+        <option value="">All</option>
+        {% for label in template_labels %}
+            <option value="{{ label }}" {% if request.GET.template == label %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-primary">Apply Filter</button>
+</form>
+
+
+<h4 class="mt-5">Recent Certificates</h4>
+<table class="table table-bordered">
+    <thead class="thead-light">
+        <tr>
+            <th>Candidate Name</th>
+            <th>Issued On</th>
+            <th>Template</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cert in recent_certificates %}
+        <tr>
+            <td>{{ cert.candidate.name }}</td>
+            <td>{{ cert.issue_date }}</td>
+            <td>{{ cert.template.name }}</td>
+        </tr>
+        {% empty %}<tr><td colspan="3">No certificates found.</td></tr>{% endfor %}
+    </tbody>
+</table>
+
+<h4 class="mt-5">Certificates Usage (Last 7 Days)</h4>
+<canvas id="certChart" height="100"></canvas>
+
+<h4 class="mt-5">Template Usage Distribution</h4>
+<div style="width: 400px; height: 400px; margin: auto;">
+    <canvas id="templateChart"></canvas>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-6">
+        <h5>Top Candidates</h5>
+        <ul class="list-group">
+            {% for cand in top_candidates %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ cand.candidate__name }}<span class="badge badge-primary badge-pill">{{ cand.count }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="col-md-6">
+        <h5>Top Templates</h5>
+        <ul class="list-group">
+            {% for temp in top_templates %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    {{ temp.template__name }}<span class="badge badge-success badge-pill">{{ temp.count }}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<script type="application/json" id="usage-dates-json">{{ usage_dates_json|safe }}</script>
+<script type="application/json" id="usage-counts-json">{{ usage_counts_json|safe }}</script>
+<script type="application/json" id="template-labels-json">{{ template_labels_json|safe }}</script>
+<script type="application/json" id="template-values-json">{{ template_values_json|safe }}</script>
+
+<script>
+const usageDates = JSON.parse(document.getElementById('usage-dates-json').textContent);
+const usageCounts = JSON.parse(document.getElementById('usage-counts-json').textContent);
+const templateLabels = JSON.parse(document.getElementById('template-labels-json').textContent);
+const templateCounts = JSON.parse(document.getElementById('template-values-json').textContent);
+
+new Chart(document.getElementById('certChart'), {
+    type: 'bar',
+    data: {
+        labels: usageDates,
+        datasets: [{ label: 'Certificates Generated', data: usageCounts, backgroundColor: '#00b894' }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true } } }
+});
+
+new Chart(document.getElementById('templateChart'), {
+    type: 'pie',
+    data: {
+        labels: templateLabels,
+        datasets: [{
+            label: 'Template Usage',
+            data: templateCounts,
+            backgroundColor: ['#00b894', '#0984e3', '#fdcb6e', '#d63031', '#6c5ce7', '#e84393']
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Generated Certificates</h2>
+
+    {% if certificates %}
+    <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Name</th>
+                <th>Course</th>
+                <th>College</th>
+                <th>Template</th>
+                <th>Download</th>
+                <th>Verify Link</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cert in certificates %}
+            <tr>
+                <td>{{ cert.candidate.name }}</td>
+                <td>{{ cert.candidate.course_title }}</td>
+                <td>{{ cert.candidate.college }}</td>
+                <td>{{ cert.template.name }}</td>
+                <td><a href="{{ cert.pdf_file.url }}" target="_blank" class="btn btn-sm btn-primary">Download</a></td>
+                <td>
+                    <a href="{% url 'verify_certificate' %}?id={{ cert.unique_id }}" target="_blank">
+                        Verify
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-center text-muted">No certificates have been generated yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

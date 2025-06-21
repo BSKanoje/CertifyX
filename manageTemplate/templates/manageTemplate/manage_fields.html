@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Manage Fields for Template: {{ template.name }}</h2>
+
+    <form method="post">
+        {% csrf_token %}
+        <label for="id_field_name">Field name:</label>
+        <select name="field_name" id="id_field_name" class="form-control">
+            <option value="name">Name</option>
+            <option value="course_title">Course Title</option>
+            <option value="college">College</option>
+            <option value="company_name">Company Name</option>
+            <option value="start_date">Start Date</option>
+            <option value="end_date">End Date</option>
+        </select>
+
+        {{ form.font.label_tag }} {{ form.font }}
+        {{ form.font_size.label_tag }} {{ form.font_size }}
+        {{ form.position_x }} {{ form.position_y }}
+        <br><br>
+        <button class="btn btn-primary" type="submit">Add Field</button>
+    </form>
+
+    <hr>
+    <h4>Click on the certificate preview to set field position:</h4>
+    <div id="template-container" style="position: relative;">
+        <img id="templateImage" src="{{ image_url }}" class="img-fluid" alt="Template Preview">
+    </div>
+
+    <hr>
+    <h4>Existing Fields</h4>
+    <ul>
+        {% for field in fields %}
+            <li>
+                <strong>{{ field.field_name }}</strong> – Font: {{ field.font }}, Size: {{ field.font_size }}, Position: ({{ field.position_x }}, {{ field.position_y }})
+            </li>
+        {% empty %}
+            <p>No fields defined yet.</p>
+        {% endfor %}
+    </ul>
+</div>
+
+<script>
+    const img = document.getElementById('templateImage');
+    const posXInput = document.getElementById('id_position_x');
+    const posYInput = document.getElementById('id_position_y');
+
+    img.addEventListener('click', function(event) {
+        const rect = img.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        const displayedWidth = rect.width;
+        const displayedHeight = rect.height;
+
+        const actualWidth = img.naturalWidth;
+        const actualHeight = img.naturalHeight;
+
+        // Scale to actual image resolution
+        const scaledX = (x / displayedWidth) * 595;  // PDF A4 width
+        const scaledY = (y / displayedHeight) * 842; // PDF A4 height
+
+        posXInput.value = Math.round(scaledX);
+        posYInput.value = Math.round(842 - scaledY); 
+    });
+</script>
+
+{% endblock %}

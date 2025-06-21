@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify Certificate</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ece9e6, #ffffff);
+            padding: 30px;
+            margin: 0;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .top-bar a {
+            text-decoration: none;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .top-bar a:hover {
+            background-color: #1e7e34;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .container:hover {
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 25px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #007BFF;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .result {
+            margin-top: 25px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-left: 5px solid #007BFF;
+            border-radius: 8px;
+        }
+
+        .result p {
+            margin: 8px 0;
+            font-size: 15px;
+            color: #333;
+        }
+
+        .status-valid {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-invalid, .status-expired {
+            color: red;
+            font-weight: bold;
+        }
+
+        .status-invalid {
+            margin-top: 15px;
+            padding: 12px;
+            background: #ffe6e6;
+            border: 1px solid #ff4d4d;
+            border-radius: 6px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 20px 10px;
+            }
+
+            .top-bar {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        {% if user.is_authenticated %}
+            <a href="/home">Home</a>
+        {% else %}
+            <a href="/">Get Started</a>
+        {% endif %}
+    </div>
+
+    <div class="container">
+        <h2>Certificate Verification</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="text" name="certificate_id" placeholder="Enter Certificate ID" required>
+            <button type="submit">Verify</button>
+        </form>
+
+        {% if certificate %}
+            <div class="result">
+                <h3>Certificate Details:</h3>
+                <p><strong>Student Name:</strong> {{ certificate.student_name }}</p>
+                <p><strong>Internship/Project Title:</strong> {{ certificate.project_title }}</p>
+                <p><strong>Company Name:</strong> {{ certificate.company_name }}</p>
+                <p><strong>Issue Date:</strong> {{ certificate.issue_date }}</p>
+                <p><strong>Status:</strong> <span class="status-valid">{{ certificate.status }}</span></p>
+            </div>
+        {% elif error %}
+            <div class="status-invalid">{{ error }}</div>
+        {% endif %}
+    </div>
+</body>
+</html>
