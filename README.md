@@ -97,7 +97,8 @@ Watch a quick walkthrough of how **CertifyX** works—from uploading templates a
 > - Usage reports overview
 
 
-## Bonus Features (Optional)
+## 🚀 Planned Enhancements
 - Auto-email with PDF attachment
 - Role-based access to certificate generation for company teams
 - Expiry alerts to company email
+- QR code-based certificate verification via scan
