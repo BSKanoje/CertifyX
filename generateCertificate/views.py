@@ -8,65 +8,6 @@ from django.core.files.base import ContentFile
 from django.contrib import messages
 from datetime import date
 
-@login_required
-def generate_certificates(request):
-    if request.method == 'POST':
-        template_id = request.POST.get('template')
-        candidate_ids = request.POST.getlist('candidates')
-
-        if not template_id or not candidate_ids:
-            messages.error(request, 'Template and candidates must be selected.')
-            return redirect('generate_certificates')
-
-        try:
-            template = CertificateTemplate.objects.get(id=template_id, company=request.user)
-        except CertificateTemplate.DoesNotExist:
-            messages.error(request, 'Invalid template selection.')
-            return redirect('generate_certificates')
-
-        candidates = Candidate.objects.filter(id__in=candidate_ids, company=request.user)
-
-        try:
-            subscription = CompanySubscription.objects.get(company=request.user)
-        except CompanySubscription.DoesNotExist:
-            messages.error(request, "No active subscription found.")
-            return redirect('home')
-
-        if not subscription.is_subscription_active():
-            messages.error(request, "Your subscription has expired.")
-            return redirect('home')
-
-        if subscription.get_certificates_used() + len(candidates) > subscription.plan.certificate_limit:
-            messages.error(
-                request,
-                f"You can only generate {subscription.remaining_certificates()} more certificates under your plan."
-            )
-            return redirect('generate_certificates')
-
-        for candidate in candidates:
-            uid, pdf_buffer = generate_certificate_pdf(template, candidate)
-            pdf_buffer.seek(0)
-
-            Certificate.objects.create(
-                candidate=candidate,
-                template=template,
-                company=request.user,
-                unique_id=uid,
-                pdf_file=ContentFile(pdf_buffer.read(), name=f"{uid}.pdf"),
-            )
-
-        messages.success(request, 'Certificates generated successfully!')
-        return redirect('certificate_list')
-
-    else:
-        templates = CertificateTemplate.objects.filter(company=request.user)
-        candidates = Candidate.objects.filter(company=request.user)
-        return render(request, 'generateCertificate/generate.html', {
-            'templates': templates,
-            'candidates': candidates
-        })
-
-
 def verify_certificate(request):
     context = {}
     
